@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>No Way Back | Yuma Ando & Oki Umezawa 2026</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Noto+Serif+JP:wght@900&family=Noto+Sans+JP:wght@400;900&family=Space+Mono&display=swap');
+
+    :root {
+      --red: #e00;
+      --bg: #050505;
+      --text: #f0f0f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      transition: background 1.2s ease;
+    }
+
+    /* ノイズ質感（控えめに） */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+      opacity: 0.1; pointer-events: none; z-index: 9998;
+    }
+    /* スキャンライン（ほぼ消す） */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(0,0,0,0.03) 4px, rgba(0,0,0,0.03) 5px);
+      pointer-events: none; z-index: 9997;
+    }
+
+    /* カーソル */
+    #cursor {
+      position: fixed; width: 28px; height: 28px;
+      border: 1.5px solid var(--red); border-radius: 50%;
+      pointer-events: none; z-index: 10000;
+      left: 0; top: 0;
+      transform: translate(-50%, -50%);
+      transition: transform 0.08s ease, width 0.2s, height 0.2s;
+      mix-blend-mode: difference;
+    }
+    #cursor::after {
+      content: ''; position: absolute;
+      top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: 3px; height: 3px; background: var(--red); border-radius: 50%;
+    }
+    body:has(button:hover) #cursor,
+    body:has(a:hover) #cursor {
+      width: 48px; height: 48px;
+    }
+
+    /* プログレスバー */
+    #bar {
+      position: fixed; top: 0; left: 0;
+      width: 0%; height: 3px;
+      background: var(--red); z-index: 10001;
+      box-shadow: 0 0 8px var(--red);
+    }
+
+    /* ===== HEADER ===== */
+    header {
+      height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+
+    /* 視差用背景レイヤー */
+    .hero-bg {
+      position: absolute; inset: -20%;
+      background: radial-gradient(ellipse at center, rgba(150,0,0,0.08) 0%, transparent 70%);
+      will-change: transform;
+    }
+
+    .hero { text-align: center; position: relative; z-index: 1; }
+    .hero h1 {
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(5rem, 20vw, 18rem);
+      line-height: 0.75;
+      letter-spacing: -0.04em;
+      transform: rotate(-0.3deg);
+      opacity: 0;
+      animation: heroIn 1.4s cubic-bezier(0.16,1,0.3,1) 0.3s forwards;
+    }
+    @keyframes heroIn {
+      from { opacity: 0; transform: rotate(-0.3deg) translateY(40px); }
+      to   { opacity: 1; transform: rotate(-0.3deg) translateY(0); }
+    }
+
+    .hero h1 .the {
+      font-size: 0.28em; letter-spacing: 0.15em; color: #555;
+      display: block; margin-bottom: 0.15em;
+      font-family: 'Space Mono';
+      animation: fadeSlide 1s ease 0.8s both;
+    }
+    .hero h1 .return {
+      color: var(--red); display: block;
+      filter: drop-shadow(3px 0 0 rgba(0,180,0,0.25)) drop-shadow(-3px 0 0 rgba(0,0,180,0.25));
+    }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateX(-10px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .hero-sub {
+      margin-top: 60px; font-family: 'Space Mono';
+      font-size: 1rem; letter-spacing: 0.35em; color: #666;
+      animation: fadeIn 1s ease 1.2s both;
+    }
+    @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+
+    .scroll-hint {
+      position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      color: #555; font-family: 'Space Mono'; font-size: 0.85rem; letter-spacing: 0.2em;
+      animation: breathe 2.5s ease-in-out infinite 2s;
+      opacity: 0;
+    }
+    @keyframes breathe { 0%,100%{opacity:0.2} 50%{opacity:0.6} }
+
+    /* ===== SECTIONS ===== */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+
+    section {
+      padding: 18vh 0;
+      position: relative;
+      opacity: 0;
+      transform: translateY(70px);
+      transition: opacity 1s cubic-bezier(0.16,1,0.3,1), transform 1s cubic-bezier(0.16,1,0.3,1);
+    }
+    section.visible { opacity: 1; transform: translateY(0); }
+
+    /* 視差デコレーション文字 */
+    .v-deco {
+      writing-mode: vertical-rl; position: absolute; right: -50px; top: 0;
+      font-family: 'Noto Serif JP'; font-size: 4rem;
+      color: rgba(255,255,255,0.018); pointer-events: none; user-select: none;
+      will-change: transform;
+    }
+
+    h2 {
+      font-size: clamp(2.8rem, 8vw, 6.5rem); font-weight: 900;
+      line-height: 0.88; letter-spacing: -0.04em; margin-bottom: 36px;
+    }
+    h2 em {
+      font-style: normal; color: var(--red);
+      text-shadow: 1px 0 0 rgba(0,200,0,0.15), -1px 0 0 rgba(0,0,200,0.15);
+    }
+
+    .divider {
+      width: 60px; height: 2px; background: var(--red);
+      margin: 28px 0; transform: rotate(-0.5deg);
+      transform-origin: left;
+      scale: 0 1;
+      transition: scale 0.6s cubic-bezier(0.16,1,0.3,1) 0.3s;
+    }
+    section.visible .divider { scale: 1 1; }
+
+    /* 本文 */
+    .body-text {
+      font-size: 1.25rem; line-height: 2; color: #aaa;
+      max-width: 680px;
+      transition: color 0.8s ease 0.2s;
+    }
+    section.visible .body-text { color: #bbb; }
+    .body-text strong { color: #e8e8e8; font-weight: 900; }
+    .body-text .fact {
+      display: block; margin-top: 22px;
+      padding: 18px 22px;
+      border-left: 3px solid #333;
+      font-size: 1.1rem; color: #777; line-height: 1.85;
+      transition: color 0.8s ease 0.4s, border-color 0.8s ease 0.4s;
+    }
+    section.visible .body-text .fact { color: #777; border-color: #333; }
+    .body-text .fact b { color: var(--red); }
+
+    /* カード */
+    .card {
+      margin-top: 40px; background: #080808;
+      border: 1px solid #222; border-left: 5px solid var(--red);
+      padding: 30px 34px;
+      transform: translateX(-10px);
+      opacity: 0;
+      transition: opacity 0.8s ease 0.5s, transform 0.8s cubic-bezier(0.16,1,0.3,1) 0.5s;
+    }
+    section.visible .card { opacity: 1; transform: translateX(0); }
+    .card-label {
+      font-family: 'Space Mono'; font-size: 0.85rem; color: var(--red);
+      letter-spacing: 0.15em; margin-bottom: 16px;
+    }
+    .card p { font-family: 'Space Mono'; font-size: 1rem; color: #888; line-height: 1.85; }
+    .card p + p { margin-top: 14px; }
+
+    /* 統計 */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px; margin-top: 36px;
+    }
+    .stat-box {
+      background: #0a0a0a; border: 1px solid #222;
+      padding: 28px 22px;
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.16,1,0.3,1);
+    }
+    section.visible .stat-box:nth-child(1) { opacity:1; transform:translateY(0); transition-delay: 0.4s; }
+    section.visible .stat-box:nth-child(2) { opacity:1; transform:translateY(0); transition-delay: 0.55s; }
+    section.visible .stat-box:nth-child(3) { opacity:1; transform:translateY(0); transition-delay: 0.7s; }
+    .stat-box .num {
+      font-family: 'Oswald'; font-size: 2.8rem; color: var(--red);
+      line-height: 1; margin-bottom: 8px;
+    }
+    .stat-box .label {
+      font-family: 'Space Mono'; font-size: 0.9rem;
+      color: #777; line-height: 1.65;
+    }
+
+    /* ===== SIMULATOR ===== */
+    .sim-lead {
+      font-family: 'Space Mono'; font-size: 0.85rem; color: #555;
+      margin: 40px 0 10px; letter-spacing: 0.05em;
+    }
+    .sim-tabs {
+      display: flex; border-bottom: 1px solid #1a1a1a; margin-bottom: 0;
+    }
+    .sim-tab {
+      background: none; border: none; border-bottom: 2px solid transparent;
+      color: #444; font-family: 'Space Mono'; font-size: 0.85rem;
+      letter-spacing: 0.1em; padding: 12px 20px;
+      cursor: none; transition: all 0.2s; margin-bottom: -1px;
+    }
+    .sim-tab.active { color: var(--red); border-bottom-color: var(--red); }
+    .sim-tab:hover { color: #999; }
+
+    .sim-panel { display: none; }
+    .sim-panel.active { display: block; }
+
+    .sim-scene {
+      background: #080808; border: 1px solid #161616;
+      padding: 28px 32px; margin: 20px 0;
+      font-size: 1.1rem; line-height: 1.85; color: #aaa;
+    }
+    .sim-scene strong { color: #ddd; }
+
+    .sim-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px; margin-top: 4px;
+    }
+    .sim-btn {
+      background: transparent; border: 1px solid #1c1c1c; color: #777;
+      padding: 22px 20px; text-align: left;
+      font-family: 'Space Mono'; font-size: 0.9rem; line-height: 1.7;
+      transition: all 0.2s; cursor: none;
+    }
+    .sim-btn::before { content: '→ '; color: var(--red); }
+    .sim-btn:hover { border-color: #444; color: #ddd; transform: translateY(-3px); }
+    .sim-btn.fail-btn:hover { border-color: var(--red); background: rgba(200,0,0,0.04); }
+    .sim-btn.ok-btn:hover { border-color: #555; background: rgba(255,255,255,0.02); }
+
+    #sim-result {
+      margin-top: 20px; padding: 20px 24px;
+      border-left: 4px solid transparent;
+      font-family: 'Space Mono'; font-size: 1rem; line-height: 1.85;
+      opacity: 0; transition: all 0.4s; white-space: pre-line; min-height: 20px;
+    }
+    #sim-result.show { opacity: 1; }
+    #sim-result.fail { border-color: var(--red); color: #d55; background: rgba(180,0,0,0.05); }
+    #sim-result.ok   { border-color: #444; color: #999; background: rgba(255,255,255,0.02); }
+
+    /* ===== FINAL ===== */
+    .final-sec { padding: 20vh 0 30vh; text-align: center; }
+    .final-statement {
+      max-width: 680px; margin: 0 auto;
+      font-size: 1.3rem; line-height: 2.1; color: #999;
+      font-family: 'Noto Serif JP'; font-weight: 900;
+      transition: color 0.8s ease 0.3s;
+    }
+    section.visible .final-statement { color: #aaa; }
+    .final-statement strong { color: var(--text); }
+
+    .credits {
+      margin-top: 120px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 80px;
+      max-width: 800px; margin-left: auto; margin-right: auto;
+    }
+    .credit-unit .role {
+      font-family: 'Space Mono'; font-size: 0.85rem; color: var(--red);
+      letter-spacing: 0.25em; margin-bottom: 12px;
+    }
+    .credit-unit .name {
+      font-family: 'Oswald'; font-size: clamp(2.5rem, 6vw, 5rem);
+      line-height: 0.85; letter-spacing: -0.03em;
+    }
+    .credit-unit:last-child { text-align: right; }
+    .credits-divider {
+      width: 1px; height: 80px; background: #1e1e1e;
+      margin: 60px auto; transform: rotate(2deg);
+    }
+
+    footer {
+      padding: 60px 40px; text-align: center;
+      font-family: 'Space Mono'; font-size: 0.65rem;
+      color: #1c1c1c; letter-spacing: 0.4em;
+    }
+
+    /* ターゲットバナー */
+    .target-banner {
+      border-top: 1px solid #161616; border-bottom: 1px solid #161616;
+      padding: 36px 40px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px;
+    }
+    .target-banner .t-label {
+      font-family: 'Space Mono'; font-size: 0.85rem; color: var(--red);
+      letter-spacing: 0.2em; display: block; margin-bottom: 10px;
+    }
+    .target-banner .t-val {
+      font-family: 'Noto Sans JP'; font-size: 1.2rem;
+      color: #ddd; line-height: 1.7;
+    }
+
+    @media (max-width: 1000px) { .v-deco { display: none; } }
+    @media (max-width: 600px) {
+      .credits { grid-template-columns: 1fr; gap: 40px; }
+      .credit-unit:last-child { text-align: left; }
+      .sim-tabs { flex-wrap: wrap; }
+    }
+
+    /* ===== PRINT ===== */
+    @media print {
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      body { background: #050505 !important; color: #f0f0f0 !important; }
+      #cursor, #bar, .scroll-hint { display: none !important; }
+      section { opacity: 1 !important; transform: none !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+      .card, .stat-box, .body-text, h2, .divider { opacity: 1 !important; transform: none !important; scale: 1 !important; }
+      header { height: auto !important; padding: 80px 40px !important; page-break-after: always !important; break-after: page !important; }
+      .hero h1 { font-size: 120px !important; opacity: 1 !important; animation: none !important; }
+      .hero h1 .the { font-size: 36px !important; animation: none !important; }
+      h2 { page-break-after: avoid !important; }
+    }
+  </style>
+</head>
+<body id="master">
+
+  <div id="cursor"></div>
+  <div id="bar"></div>
+
+  <!-- HERO -->
+  <header>
+    <div class="hero-bg" id="heroBg"></div>
+    <div class="hero">
+      <h1>
+        <span class="the">no way</span>
+        <span class="return">back.</span>
+      </h1>
+      <p class="hero-sub">Yuma Ando &amp; Oki Umezawa &nbsp;—&nbsp; 2026</p>
+    </div>
+    <div class="scroll-hint">
+      <span>SCROLL</span>
+      <svg width="14" height="22" viewBox="0 0 14 22" fill="none">
+        <path d="M7 2v18M1 14l6 6 6-6" stroke="#555" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </header>
+
+  <!-- ターゲットバナー -->
+  <div class="target-banner">
+    <div>
+      <span class="t-label">対象</span>
+      <span class="t-val">SNSを日常的に使う<br>中高生（13〜18歳）</span>
+    </div>
+    <div>
+      <span class="t-label">掲載場所</span>
+      <span class="t-val">学校内掲示 / Web公開<br>SNSシェア</span>
+    </div>
+    <div>
+      <span class="t-label">伝えたいこと</span>
+      <span class="t-val">最初の一回を断れ。<br>その選択が人生を分ける。</span>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- 01 -->
+    <section data-bg="dark">
+      <div class="v-deco">不可逆</div>
+      <h2>一度やったら、<br><em>戻れない</em>。</h2>
+      <div class="divider"></div>
+      <p class="body-text">
+        薬物依存は「意志が弱いから」起きるのではない。脳の物理的な構造が変わるから起きる。<strong>一度でも使用すると、脳はその刺激を「生存に必要な快楽」として記憶する。</strong>その記憶は、通常の方法では書き換えられない。
+        <span class="fact">
+          <b>医学的事実：</b>薬物が引き起こす依存は、WHO（世界保健機関）の分類において「慢性脳疾患」とされている。食欲や性欲と同じ「生存本能」の回路を薬物が乗っ取るため、「やめようと思えばやめられる」という判断が脳レベルで不可能になっていく。最初の一回が、この書き換えプロセスの起動スイッチだ。
+        </span>
+      </p>
+    </section>
+
+    <!-- 02 -->
+    <section data-bg="dark">
+      <div class="v-deco">主権</div>
+      <h2>自分の脳を、<br><em>売ること</em>になる。</h2>
+      <div class="divider"></div>
+      <p class="body-text">
+        自分の行動を自分でコントロールする能力を、専門用語で「実行機能」と呼ぶ。<strong>薬物依存が進むにつれ、この実行機能を担う前頭前野が萎縮していく。</strong>つまり、「やめよう」と思う能力そのものが失われていく。
+        <span class="fact">
+          <b>研究データ：</b>慢性的な薬物使用者の脳スキャン研究（NIDA, 2021）では、前頭前野のグルコース代謝が平均で健常者より12〜18%低下していることが確認されている。これは意思決定、衝動制御、長期計画を立てる能力が物理的に低下することを意味する。「根性でやめられる」という前提が、そもそも医学的に成立しない。
+        </span>
+      </p>
+      <div class="stats-row">
+        <div class="stat-box"><div class="num" data-count="12" data-suffix="%">0%</div><div class="label">前頭前野代謝の<br>平均低下率</div></div>
+        <div class="stat-box"><div class="num" data-count="3" data-suffix="回">0回</div><div class="label">依存形成に必要な<br>使用回数（物質により異なる）</div></div>
+        <div class="stat-box"><div class="num" data-count="90" data-suffix="%">0%</div><div class="label">初回使用が<br>25歳以下で起きる割合</div></div>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section data-bg="dark">
+      <div class="v-deco">捕食</div>
+      <h2>売人は<br><em>スマホの中</em>にいる。</h2>
+      <div class="divider"></div>
+      <p class="body-text">
+        薬物売買の場は、物理的な路地裏から、スマートフォンの画面に移動した。<strong>購入者側にリスクを感じさせないよう、会話は日常語や絵文字で行われる。</strong>未成年者が特にターゲットとされるのは、成人より購買力が低くても、依存形成が速く、長期顧客になりやすいためだ。
+        <span class="fact">
+          <b>手口の実態：</b>「物件あります」「草あるよ」「眠れない人いる？」といった一見無害な投稿が入口になる。DMに誘導されると、相場・受け渡し方法・代金支払い方法が提示される。匿名性の高い決済サービスや暗号資産が使われるため、現金を持ち歩く必要すらない。摘発のリスクは買い手にも等しく及ぶ。
+        </span>
+      </p>
+      <div class="card">
+        <div class="card-label">実際の手口</div>
+        <p>「一回でもDMで返信させれば勝ち。断り切れない相手かどうか、最初の返答でわかる。焦らず3〜4回やりとりすれば、大体向こうから聞いてくる。」</p>
+        <p style="margin-top:14px; color:#333;">— 摘発された売人の供述（厚生労働省・薬物事犯調査資料より再構成）</p>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section data-bg="red">
+      <div class="v-deco">占拠</div>
+      <h2>楽しいが<br><em>消えていく</em>。</h2>
+      <div class="divider"></div>
+      <p class="body-text">
+        人間が「楽しい」「やりがいがある」と感じるとき、脳内でドーパミンが分泌される。<strong>薬物はこの分泌量を通常の2〜10倍に引き上げる。</strong>その結果、脳は「食事」「会話」「達成感」といった日常的な快楽に反応しなくなっていく。薬物以外では、ドーパミンが出なくなるからだ。
+        <span class="fact">
+          <b>神経科学的背景：</b>この状態を「報酬欠乏症候群」という。脳が薬物を基準値として再設定するため、普通の喜びが「欠乏」として感じられるようになる。好きな食べ物の味がしない、好きな音楽が聴けない、大切な人と話していても何も感じない——依存が進んだ使用者が報告する症状の多くが、これに由来する。
+        </span>
+      </p>
+    </section>
+
+    <!-- 05 -->
+    <section data-bg="red">
+      <div class="v-deco">瓦解</div>
+      <h2>身体が<br><em>壊れていく</em>。</h2>
+      <div class="divider"></div>
+      <p class="body-text">
+        薬物の影響は脳にとどまらない。<strong>全身の臓器が、長期使用によって段階的に損傷を受ける。</strong>覚醒剤は心臓への負荷、大麻は肺機能の低下、市販薬の過剰摂取は肝機能障害を引き起こす。症状が現れる頃には、すでに回復が困難なレベルの損傷が起きていることが多い。
+        <span class="fact">
+          <b>臨床データ：</b>覚醒剤の長期使用者では、平均使用歴5年で心肥大が確認されるケースが報告されている。大麻の慢性使用（週3回以上・5年以上）では、タバコ喫煙者と同等以上の気管支炎症状が現れる。また、市販薬に含まれるアセトアミノフェンの過剰摂取は、適切な治療がなければ数日内に急性肝不全を引き起こす。
+        </span>
+      </p>
+      <div class="stats-row">
+        <div class="stat-box"><div class="num" data-count="5" data-suffix="年">0年</div><div class="label">覚醒剤使用で<br>心肥大が現れる平均年数</div></div>
+        <div class="stat-box"><div class="num" data-count="72" data-suffix="h">0h</div><div class="label">OD後に肝不全が<br>進行するまでの時間</div></div>
+        <div class="stat-box"><div class="num" data-count="60" data-suffix="%">0%</div><div class="label">依存者が最初の<br>身体症状を無視する割合</div></div>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section data-bg="dark">
+      <div class="v-deco">欺瞞</div>
+      <h2>大麻は<br><em>安全じゃない</em>。</h2>
+      <div class="divider"></div>
+      <p class="body-text">
+        「大麻は自然由来だから安全」「依存性がない」という主張は、科学的に否定されている。<strong>現在市場に流通している大麻のTHC濃度は、1990年代比で平均3〜4倍に上昇しており、依存リスクも比例して高まっている。</strong>また、脳が発達段階にある25歳以下での使用は、認知機能への影響が成人使用者より著しく大きいことが複数の研究で確認されている。
+        <span class="fact">
+          <b>若年者への特異的リスク：</b>ニュージーランドで行われた長期追跡研究（Dunedinコホート研究）では、10代での大麻常用者が38歳時点で8IQポイント低下していたことが示された。この低下は、成人後に使用をやめても回復しなかった。「試すだけ」の一回が、生涯にわたる認知機能の損失につながる可能性がある。
+        </span>
+      </p>
+      <div class="card">
+        <div class="card-label">「大麻は安全」という主張を検証する</div>
+        <p>「タバコよりマシ」— タバコとの比較は有害性の否定にならない。大麻煙にもタール・一酸化炭素が含まれ、肺への刺激はタバコ以上とする研究がある。</p>
+        <p style="margin-top:12px;">「医療用があるから安全」— 医療用大麻はCBD主体の医薬品として厳密に管理されたもの。路上で流通するTHC濃度の高い大麻とは別物だ。</p>
+      </div>
+    </section>
+
+    <!-- 07 -->
+    <section data-bg="red">
+      <div class="v-deco">終了</div>
+      <h2>市販薬でも<br><em>死ねる</em>。</h2>
+      <div class="divider"></div>
+      <p class="body-text">
+        オーバードーズ（OD）とは、薬物・医薬品を過剰摂取することだ。<strong>市販薬によるODは、2020年以降、10代の救急搬送件数において急増している。</strong>「手に入りやすい」「違法ではない」という認識が、リスクの感覚を麻痺させる。しかしその薬理作用は、処方薬・違法薬物と変わらない。
+        <span class="fact">
+          <b>何が起きているか：</b>鎮痛剤・咳止め・睡眠補助薬に含まれるアセトアミノフェン・デキストロメトルファン・ジフェンヒドラミンは、規定量の数倍を摂取すると重篤な副作用を引き起こす。症状は「楽になる」どころか、嘔吐・痙攣・心停止・肝不全など。意識を失った場合、発見が遅れれば回復の見込みがない。
+        </span>
+      </p>
+      <div class="stats-row">
+        <div class="stat-box"><div class="num" data-count="2.3" data-suffix="倍" data-decimal="1">0倍</div><div class="label">10代のOD救急搬送<br>2019→2023年の増加率</div></div>
+        <div class="stat-box"><div class="num">1位</div><div class="label">10代の薬物関連<br>救急搬送原因（市販薬）</div></div>
+        <div class="stat-box"><div class="num" data-count="48" data-suffix="h">0h</div><div class="label">無治療での肝機能<br>回復不能が確定するまで</div></div>
+      </div>
+    </section>
+
+    <!-- 08 -->
+    <section data-bg="dark">
+      <div class="v-deco">抹消</div>
+      <h2>前科がつくと<br><em>人生が詰む</em>。</h2>
+      <div class="divider"></div>
+      <p class="body-text">
+        薬物事犯は「前科」として記録に残る。<strong>逮捕・起訴された場合、就職・進学・資格取得・海外渡航に制限が生じる可能性がある。</strong>加えて、薬物に関連したSNSの投稿や通報記録は、削除しても調査対象になり得る。「バレなければいい」は成立しない。
+        <span class="fact">
+          <b>社会的影響の実態：</b>日本では薬物事犯の前科がある場合、教員・医師・薬剤師・弁護士・公務員等の資格取得が法的に制限される。未成年でも家庭裁判所への送致・少年院送致の対象となり、その記録は一定期間保存される。また、家族への影響として、保護者の職場や地域社会への通報が行われるケースも報告されている。自分だけの問題ではない。
+        </span>
+      </p>
+    </section>
+
+    <!-- 09: SIMULATOR -->
+    <section data-bg="dark">
+      <div class="v-deco">拒絶</div>
+      <h2>どう<br><em>断るか</em>。</h2>
+      <div class="divider"></div>
+      <p class="body-text">
+        薬物を勧める側は、断られることに慣れている。<strong>「考えてみる」「今日はいい」という曖昧な返答は、「次回は成功する」というシグナルとして受け取られる。</strong>有効な断り方は一つだけだ——関わりをゼロにすること。理由を説明する必要はない。謝る必要もない。
+      </p>
+      <p class="sim-lead">— 自分だったらどうする？</p>
+      <div class="sim-tabs">
+        <button class="sim-tab active" onclick="switchTab(0)">SNSのDM</button>
+        <button class="sim-tab" onclick="switchTab(1)">友人からの誘い</button>
+        <button class="sim-tab" onclick="switchTab(2)">断ったあと</button>
+      </div>
+
+      <div class="sim-panel active" id="panel-0">
+        <div class="sim-scene">
+          知らないアカウントからDMが届く。「最近しんどそうだね。リラックスできるいいものあるよ。よかったら話聞くよ」<br>
+          <strong>あなたはどうする？</strong>
+        </div>
+        <div class="sim-grid">
+          <button class="sim-btn fail-btn" onclick="simResult('f','「しんどい」と返信した時点で、相手はあなたが「応じる相手」だと判断する。感情を共有した瞬間、会話の主導権は相手に移っている。')">「最近しんどくて…」と返信する</button>
+          <button class="sim-btn fail-btn" onclick="simResult('f','「何なのか確かめたかっただけ」は通用しない。興味があることを証明してしまっている。次のメッセージで誘導が始まる。')">「いいものって何？」と聞く</button>
+          <button class="sim-btn fail-btn" onclick="simResult('f','返信は会話の継続だ。ブロックせずに返信した時点で、「まだ繋がれる」と判断される。内容は関係ない。')">「大丈夫です」と返信する</button>
+          <button class="sim-btn ok-btn" onclick="simResult('o','正解。見知らぬアカウントからの「共感」を装った接触は手口の第一段階だ。反応した時点で「有望なターゲット」として記録される。既読をつけずにブロック・通報が唯一の正解。')">既読をつけずにブロック・通報する</button>
+        </div>
+      </div>
+
+      <div class="sim-panel" id="panel-1">
+        <div class="sim-scene">
+          昔から知っている友人に呼び出される。「一回だけ試してみろよ。俺も試したけど全然大丈夫だった。お前なら平気だって」<br>
+          <strong>あなたはどうする？</strong>
+        </div>
+        <div class="sim-grid">
+          <button class="sim-btn fail-btn" onclick="simResult('f','議論に勝っても、関係性上の圧力は続く。相手のフィールドに入ることになる。その場を離れることだけが有効だ。')">なぜダメなのか説明しようとする</button>
+          <button class="sim-btn fail-btn" onclick="simResult('f','「今日は」は「明日ならいい」という意味に変換される。断りの言葉に「は」「が」「けど」をつけた時点で、完全な拒絶ではなくなる。')">「今日はやめとく」と言う</button>
+          <button class="sim-btn fail-btn" onclick="simResult('f','「次回は可能性がある」と判断させる最も危険な返答だ。その後の連絡が続き、断るたびに関係性の圧力が高まる。')">「考えておく」と言う</button>
+          <button class="sim-btn ok-btn" onclick="simResult('o','正解。説明も謝罪も不要だ。友人関係が壊れることを恐れる必要はない——その恐れを利用して誘ってくる相手との関係は、すでに対等ではない。')">何も言わずにその場を離れる</button>
+        </div>
+      </div>
+
+      <div class="sim-panel" id="panel-2">
+        <div class="sim-scene">
+          一度断ったあと、「なんで？ 俺のこと信用してないの？」「一回くらいいいじゃん」と連絡が来続けている。<br>
+          <strong>あなたはどうする？</strong>
+        </div>
+        <div class="sim-grid">
+          <button class="sim-btn fail-btn" onclick="simResult('f','友人関係や信頼を人質にする操作だ。この問いに答えようとした時点で、相手のフィールドに入ってしまっている。')">「信用してないわけじゃないけど…」と説明する</button>
+          <button class="sim-btn fail-btn" onclick="simResult('f','繋がったままにしておくと「まだ可能性がある」という期待を与え続ける。別のルートや場面でアプローチされ続ける。')">無視し続ける（ブロックはしない）</button>
+          <button class="sim-btn ok-btn" onclick="simResult('o','正解。全てのSNS・連絡手段でブロックし、信頼できる大人に報告する。一度断った相手が続けてアプローチしてくる状況は、もはや友人関係ではない。報告することは裏切りではなく、自己防衛だ。')">全媒体でブロックし、信頼できる大人に話す</button>
+          <button class="sim-btn fail-btn" onclick="simResult('f','「一回だけ」は存在しない。これは交渉ではない。断りの撤回への最初のステップだ。')">「一回だけなら…」と折れる</button>
+        </div>
+      </div>
+
+      <div id="sim-result" role="alert" aria-live="polite"></div>
+    </section>
+
+    <!-- 制作者ノート -->
+    <section data-bg="dark">
+      <h2 style="font-size: clamp(2rem, 5vw, 4rem); margin-bottom:36px;">このサイトで<br><em>工夫したこと</em>。</h2>
+      <div class="divider"></div>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top:24px;">
+        <div class="card" style="margin-top:0;"><div class="card-label">①　誰に向けて作ったか</div><p>「若者向け」ではなく「SNSのDMを毎日受け取る中高生」に絞った。実際にSNSで使われている隠語・手口を調査し、読んだ瞬間に「自分ごと」として感じられるリアルな言葉を選んだ。</p></div>
+        <div class="card" style="margin-top:0;"><div class="card-label">②　デザインの工夫</div><p>「読むだけの啓発」にしたくなかった。黒背景・赤・タイポグラフィで、見た瞬間に重さが伝わるビジュアルを目指した。フォントや余白に時間をかけた。</p></div>
+        <div class="card" style="margin-top:0;"><div class="card-label">③　調査と役割分担</div><p>安藤（リサーチ）と梅澤（デザイン）で完全に役割を分担。WHO分類・NIDA研究・Dunedinコホート研究など一次資料を参照し、「根性論ではなく医学的事実」として構成した。</p></div>
+      </div>
+    </section>
+
+    <!-- FINAL -->
+    <section class="final-sec" data-bg="dark">
+      <h2 style="margin-bottom:48px;"><em>結論</em>。</h2>
+      <p class="final-statement">
+        <strong>最初の一回を、断れ。</strong><br><br>
+        一度刻まれた傷は消えない。<br>
+        未来を、誰かに渡すな。
+      </p>
+      <div class="credits-divider"></div>
+      <div class="credits">
+        <div class="credit-unit">
+          <div class="role">リサーチ</div>
+          <div class="name">Yuma<br>Ando</div>
+        </div>
+        <div class="credit-unit">
+          <div class="role">デザイン</div>
+          <div class="name">Oki<br>Umezawa</div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    &copy; 2026 No Way Back &nbsp;|&nbsp; Yuma Ando &amp; Oki Umezawa
+  </footer>
+
+  <script>
+    // カーソル
+    const cursor = document.getElementById('cursor');
+    document.addEventListener('mousemove', e => {
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top  = e.clientY + 'px';
+    });
+
+    // プログレスバー
+    window.addEventListener('scroll', () => {
+      const h = document.documentElement;
+      document.getElementById('bar').style.width =
+        ((h.scrollTop || document.body.scrollTop) / (h.scrollHeight - h.clientHeight) * 100) + '%';
+    });
+
+    // 視差スクロール
+    const heroBg = document.getElementById('heroBg');
+    const vDecos = document.querySelectorAll('.v-deco');
+    window.addEventListener('scroll', () => {
+      const y = window.scrollY;
+      if (heroBg) heroBg.style.transform = `translateY(${y * 0.3}px)`;
+      vDecos.forEach((d, i) => {
+        d.style.transform = `translateY(${y * (i % 2 === 0 ? 0.08 : -0.06)}px)`;
+      });
+    }, { passive: true });
+
+    // スクロールアニメ + 背景侵食 + カウントアップ
+    const master = document.getElementById('master');
+    const counted = new Set();
+
+    function countUp(el) {
+      if (counted.has(el)) return;
+      counted.add(el);
+      const target = parseFloat(el.dataset.count);
+      const suffix = el.dataset.suffix || '';
+      const decimal = parseInt(el.dataset.decimal || 0);
+      const duration = 1200;
+      const start = performance.now();
+      function step(now) {
+        const p = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        const val = target * ease;
+        el.textContent = (decimal ? val.toFixed(decimal) : Math.floor(val)) + suffix;
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const sec = entry.target;
+        sec.classList.add('visible');
+
+        // 背景侵食
+        master.style.background = sec.dataset.bg === 'red' ? '#160202' : '#050505';
+
+        // カウントアップ
+        sec.querySelectorAll('[data-count]').forEach(el => countUp(el));
+      });
+    }, { threshold: 0.15 });
+
+    document.querySelectorAll('section').forEach(s => observer.observe(s));
+
+    // シミュレーター
+    function switchTab(idx) {
+      document.querySelectorAll('.sim-tab').forEach((b, i) => b.classList.toggle('active', i === idx));
+      document.querySelectorAll('.sim-panel').forEach((p, i) => p.classList.toggle('active', i === idx));
+      const r = document.getElementById('sim-result');
+      r.className = ''; r.textContent = '';
+    }
+
+    function simResult(type, msg) {
+      const box = document.getElementById('sim-result');
+      box.className = 'show ' + (type === 'o' ? 'ok' : 'fail');
+      box.textContent = (type === 'o' ? '→  ' : '✕  ') + msg;
+      box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  </script>
+</body>
+</html>
